@@ -43,6 +43,46 @@ func Connect() (string, *sql.DB, error) {
 	return drv, db, nil
 }
 
+func ConnectMysql(cfg *mysql.Config) (*sql.DB, error) {
+	return ConnectMysqlWithOptions(
+		cfg, MysqlOptions{
+			MaxIdleConns:    10,
+			MaxOpenConns:    100,
+			ConnMaxLifetime: time.Hour,
+		},
+	)
+}
+
+type MysqlOptions struct {
+	MaxIdleConns    int
+	MaxOpenConns    int
+	ConnMaxLifetime time.Duration
+}
+
+func ConnectMysqlWithOptions(cfg *mysql.Config, opts MysqlOptions) (
+	*sql.DB, error,
+) {
+	if nil == cfg {
+		var err error
+		cfg, err = mysqlCfg()
+		if err != nil {
+			return nil, err
+		}
+	}
+	db, err := sql.Open(dialect.MySQL, cfg.FormatDSN())
+	if err != nil {
+		return nil, errors.New(
+			fmt.Sprintf(
+				"Failed to open MySQL connection: %s", err,
+			),
+		)
+	}
+	db.SetMaxIdleConns(opts.MaxIdleConns)
+	db.SetMaxOpenConns(opts.MaxOpenConns)
+	db.SetConnMaxLifetime(opts.ConnMaxLifetime)
+	return db, nil
+}
+
 func mysqlCfg() (*mysql.Config, error) {
 	user := os.Getenv("DB_USER")
 	if "" == user {
@@ -87,26 +127,4 @@ func mysqlCfg() (*mysql.Config, error) {
 		MultiStatements:          true,
 		ParseTime:                true,
 	}, nil
-}
-
-func ConnectMysql(cfg *mysql.Config) (*sql.DB, error) {
-	if nil == cfg {
-		var err error
-		cfg, err = mysqlCfg()
-		if err != nil {
-			return nil, err
-		}
-	}
-	db, err := sql.Open(dialect.MySQL, cfg.FormatDSN())
-	if err != nil {
-		return nil, errors.New(
-			fmt.Sprintf(
-				"Failed to open MySQL connection: %s", err,
-			),
-		)
-	}
-	db.SetMaxIdleConns(10)
-	db.SetMaxOpenConns(100)
-	db.SetConnMaxLifetime(time.Hour)
-	return db, nil
 }

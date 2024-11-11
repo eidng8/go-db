@@ -2,7 +2,7 @@
 
 A tiny module for lazy me, to connect database.
 
-This module use a predefined set of environment variables to connect databases using `database/sql`.
+This module uses a predefined set of environment variables to connect databases using `database/sql`.
 
 ##  Usage
 
@@ -38,7 +38,7 @@ These variables are used to configure the connection to MySQL, if `DB_DSN` is no
 
 ##### DB_USER
 
-REQUIRED and cannot be empty. Determines the user name to connect to database.
+REQUIRED and cannot be empty. Determines the username to connect to database.
 
 ##### DB_PASSWORD
 
