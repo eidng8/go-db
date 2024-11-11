@@ -12,6 +12,8 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
+// ConnectX to the database using predefined environment variables, panic if
+// failed.
 func ConnectX() (string, *sql.DB) {
 	drv, db, err := Connect()
 	if err != nil {
@@ -20,6 +22,7 @@ func ConnectX() (string, *sql.DB) {
 	return drv, db
 }
 
+// Connect to the database using predefined environment variables.
 func Connect() (string, *sql.DB, error) {
 	drv := os.Getenv("DB_DRIVER")
 	if "" == drv {
@@ -43,6 +46,7 @@ func Connect() (string, *sql.DB, error) {
 	return drv, db, nil
 }
 
+// ConnectMysql to the MySQL database using predefined environment variables.
 func ConnectMysql(cfg *mysql.Config) (*sql.DB, error) {
 	return ConnectMysqlWithOptions(
 		cfg, MysqlOptions{
@@ -53,12 +57,15 @@ func ConnectMysql(cfg *mysql.Config) (*sql.DB, error) {
 	)
 }
 
+// MysqlOptions for the MySQL database connection.
 type MysqlOptions struct {
 	MaxIdleConns    int
 	MaxOpenConns    int
 	ConnMaxLifetime time.Duration
 }
 
+// ConnectMysqlWithOptions to the MySQL database using predefined environment
+// variables and options.
 func ConnectMysqlWithOptions(cfg *mysql.Config, opts MysqlOptions) (
 	*sql.DB, error,
 ) {
