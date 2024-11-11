@@ -1,5 +1,9 @@
 # go-db
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/eidng8/go-db.svg)](https://pkg.go.dev/github.com/eidng8/go-db)
+[![Go Report Card](https://goreportcard.com/badge/github.com/eidng8/go-db)](https://goreportcard.com/report/github.com/eidng8/go-db)
+[![License](https://img.shields.io/github/license/eidng8/go-db)](https://github.com/eidng8/go-db?tab=MIT-1-ov-file#)
+
 A tiny module for lazy me, to connect database.
 
 This module uses a predefined set of environment variables to connect databases using `database/sql`.
