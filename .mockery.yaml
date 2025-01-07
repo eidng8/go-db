@@ -1,0 +1,17 @@
+issue-845-fix: True
+with-expecter: true
+dir: "{{ .ConfigDir }}"
+filename: mock_{{ replaceAll .PackagePath "/" "_" }}_test.go
+#filename: mock_{{.InterfaceName}}_test.go
+outpkg: db
+packages:
+  database/sql/driver:
+    # place your package-specific config here
+    config:
+    interfaces:
+      Driver:
+        config:
+      # select the interfaces you want mocked
+      DriverContext:
+        # Modify package-level config for this specific interface (if applicable)
+        config:
