@@ -17,7 +17,7 @@ import (
 func ConnectX() (string, *sql.DB) {
 	drv, db, err := Connect()
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
 	return drv, db
 }
@@ -36,7 +36,7 @@ func Connect() (string, *sql.DB, error) {
 		}
 		return drv, conn, nil
 	}
-	if dialect.MySQL != drv {
+	if dialect.MySQL != drv && "mysql-test" != drv {
 		return drv, nil, errors.New("DB_DSN environment variable is not set")
 	}
 	db, err := ConnectMysql(nil)
@@ -55,6 +55,27 @@ func ConnectMysql(cfg *mysql.Config) (*sql.DB, error) {
 			ConnMaxLifetime: time.Hour,
 		},
 	)
+}
+
+func Transaction[T any](db *sql.DB, fn func(*sql.Tx) (T, error)) (T, error) {
+	var zero T
+	tx, err := db.Begin()
+	if nil != err {
+		return zero, err
+	}
+	v, err := fn(tx)
+	if nil != err {
+		er := tx.Rollback()
+		if er != nil {
+			return zero, fmt.Errorf("%w; %w", err, er)
+		}
+		return zero, err
+	}
+	err = tx.Commit()
+	if nil != err {
+		return zero, err
+	}
+	return v, nil
 }
 
 // MysqlOptions for the MySQL database connection.
@@ -76,7 +97,7 @@ func ConnectMysqlWithOptions(cfg *mysql.Config, opts MysqlOptions) (
 			return nil, err
 		}
 	}
-	db, err := sql.Open(dialect.MySQL, cfg.FormatDSN())
+	db, err := sql.Open(os.Getenv("DB_DRIVER"), cfg.FormatDSN())
 	if err != nil {
 		return nil, errors.New(
 			fmt.Sprintf(
