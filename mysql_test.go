@@ -15,7 +15,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-func launchMysql() testcontainers.Container {
+func launchMysql() (testcontainers.Container, string) {
 	ctx := context.Background()
 	// cli, err := client.NewClientWithOpts(client.FromEnv)
 	// utils.PanicIfError(err)
@@ -33,7 +33,7 @@ func launchMysql() testcontainers.Container {
 		WaitingFor:   wait.ForLog("MySQL init process done. Ready for start up."),
 		Env: map[string]string{
 			"MYSQL_ROOT_PASSWORD": "test_pass",
-			"MYSQL_DATABASE":      "test_name",
+			"MYSQL_DATABASE":      "test_db",
 			"MYSQL_USER":          "test_user",
 			"MYSQL_PASSWORD":      "test_pass",
 		},
@@ -52,7 +52,11 @@ func launchMysql() testcontainers.Container {
 		}
 		panic(err)
 	}
-	return cntr
+	mapped, err := cntr.MappedPort(
+		ctx, utils.ReturnOrPanic(nat.NewPort("tcp", "3306")),
+	)
+	utils.PanicIfError(err)
+	return cntr, mapped.Port()
 }
 
 func callMysqlTest(port string, f func(*testing.T, string)) func(*testing.T) {
@@ -85,26 +89,31 @@ func Test_Mysql(t *testing.T) {
 	require.Nil(t, os.Setenv("DB_USER", "test_user"))
 	require.Nil(t, os.Setenv("DB_PASSWORD", "test_pass"))
 	require.Nil(t, os.Setenv("DB_HOST", "test_host"))
-	require.Nil(t, os.Setenv("DB_NAME", "test_name"))
+	require.Nil(t, os.Setenv("DB_NAME", "test_db"))
 	ctx := context.Background()
 	// cli, cntr := launchMysql()
 	// defer utils.PanicIfError(
 	// 	cli.ContainerStop(ctx, cntr.ID, container.StopOptions{}),
 	// )
 	// port := "1"
-	cntr := launchMysql()
+	cntr, port := launchMysql()
 	defer utils.PanicIfError(cntr.Terminate(ctx))
-	mapped, err := cntr.MappedPort(
-		ctx, utils.ReturnOrPanic(nat.NewPort("tcp", "3306")),
-	)
-	require.Nil(t, err)
-	port := mapped.Port()
 	t.Run("connects to mysql", callMysqlTest(port, doConnectToMysql))
+	t.Run(
+		"connects to mysql returns error if wrong env config",
+		callMysqlTest(port, doConnectToMysqlReturnsError),
+	)
 }
 
 func doConnectToMysql(t *testing.T, port string) {
 	_, _, err := Connect()
 	require.Nil(t, err)
+}
+
+func doConnectToMysqlReturnsError(t *testing.T, port string) {
+	require.Nil(t, os.Unsetenv("DB_USER"))
+	_, _, err := Connect()
+	require.NotNil(t, err)
 }
 
 type MockErrorDriver struct{ t *testing.T }
