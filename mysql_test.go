@@ -17,16 +17,6 @@ import (
 
 func launchMysql() (testcontainers.Container, string) {
 	ctx := context.Background()
-	// cli, err := client.NewClientWithOpts(client.FromEnv)
-	// utils.PanicIfError(err)
-	// cntr, err := cli.ContainerCreate(
-	// 	ctx, &container.Config{Image: "mysql:8.0"}, &container.HostConfig{},
-	// 	nil, nil, "",
-	// )
-	// utils.PanicIfError(err)
-	// err = cli.ContainerStart(ctx, cntr.ID, container.StartOptions{})
-	// utils.PanicIfError(err)
-	// return cli, cntr
 	req := testcontainers.ContainerRequest{
 		Image:        "mysql:8.0",
 		ExposedPorts: []string{"3306/tcp"},
@@ -91,11 +81,6 @@ func Test_Mysql(t *testing.T) {
 	require.Nil(t, os.Setenv("DB_HOST", "test_host"))
 	require.Nil(t, os.Setenv("DB_NAME", "test_db"))
 	ctx := context.Background()
-	// cli, cntr := launchMysql()
-	// defer utils.PanicIfError(
-	// 	cli.ContainerStop(ctx, cntr.ID, container.StopOptions{}),
-	// )
-	// port := "1"
 	cntr, port := launchMysql()
 	defer utils.PanicIfError(cntr.Terminate(ctx))
 	t.Run("connects to mysql", callMysqlTest(port, doConnectToMysql))

@@ -5,6 +5,7 @@ go 1.23.2
 require (
 	entgo.io/ent v0.14.1
 	github.com/DATA-DOG/go-sqlmock v1.5.2
+	github.com/docker/go-connections v0.5.0
 	github.com/eidng8/go-utils v0.0.12
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/mattn/go-sqlite3 v1.14.24
@@ -25,7 +26,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/docker v27.4.1+incompatible // indirect
-	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
