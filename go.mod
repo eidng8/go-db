@@ -6,7 +6,7 @@ require (
 	entgo.io/ent v0.14.1
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/docker/go-connections v0.5.0
-	github.com/eidng8/go-utils v0.0.12
+	github.com/eidng8/go-utils v0.1.1
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/stretchr/testify v1.10.0
@@ -54,6 +54,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.24.5 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.9.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect

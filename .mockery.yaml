@@ -1,0 +1,18 @@
+issue-845-fix: True
+with-expecter: true
+dir: "{{ .ConfigDir }}"
+filename: mock_{{ replaceAll .PackagePath "/" "_" }}_test.go
+#filename: mock_{{.InterfaceName}}_test.go
+outpkg: db
+packages:
+  io:
+    interfaces:
+      Writer:
+  github.com/eidng8/go-utils:
+    # place your package-specific config here
+    config:
+    interfaces:
+      # select the interfaces you want mocked
+      TaggedLogger:
+        # Modify package-level config for this specific interface (if applicable)
+        config:

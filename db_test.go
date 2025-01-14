@@ -20,6 +20,18 @@ var (
 	errTxFunc = func(tx *sql.Tx) (int, error) { return 123, errTest }
 )
 
+func setup(tb testing.TB) *sql.DB {
+	require.Nil(tb, os.Setenv("DB_DRIVER", "sqlite3"))
+	require.Nil(tb, os.Setenv("DB_DSN", ":memory:"))
+	_, db, err := Connect()
+	require.Nil(tb, err)
+	//goland:noinspection SqlNoDataSourceInspection
+	_, err = db.Exec("CREATE TABLE test (val TEXT)")
+	require.Nil(tb, err)
+	db.SetMaxOpenConns(1)
+	return db
+}
+
 func Test_Connect_with_dsn(t *testing.T) {
 	require.Nil(t, os.Setenv("DB_DRIVER", "sqlite3"))
 	require.Nil(t, os.Setenv("DB_DSN", ":memory:"))

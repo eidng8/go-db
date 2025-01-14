@@ -46,7 +46,8 @@ func Connect() (string, *sql.DB, error) {
 	return drv, db, nil
 }
 
-// ConnectMysql to the MySQL database using predefined environment variables.
+// ConnectMysql to the MySQL database using the given configuration `cfg`. If
+// nil is passed, it reads configuration from predefined environment variables.
 func ConnectMysql(cfg *mysql.Config) (*sql.DB, error) {
 	return ConnectMysqlWithOptions(
 		cfg, MysqlOptions{
@@ -57,6 +58,8 @@ func ConnectMysql(cfg *mysql.Config) (*sql.DB, error) {
 	)
 }
 
+// Transaction wraps the given function `fn` in a database transaction, and
+// returns whatever `fn` returns.
 func Transaction[T any](db *sql.DB, fn func(*sql.Tx) (T, error)) (T, error) {
 	var zero T
 	tx, err := db.Begin()
