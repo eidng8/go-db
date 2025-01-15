@@ -22,7 +22,7 @@ var (
 
 func setup(tb testing.TB) *sql.DB {
 	require.Nil(tb, os.Setenv("DB_DRIVER", "sqlite3"))
-	require.Nil(tb, os.Setenv("DB_DSN", ":memory:"))
+	require.Nil(tb, os.Setenv("DB_DSN", ":memory:?_journal=WAL&_timeout=5000"))
 	_, db, err := Connect()
 	require.Nil(tb, err)
 	//goland:noinspection SqlNoDataSourceInspection

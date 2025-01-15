@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"io"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -192,9 +193,62 @@ func Test_Write_retries_and_log_io_error(t *testing.T) {
 	writer.logFailed([]any{"test", "val"})
 }
 
+func Test_Write_concurrency(t *testing.T) {
+	threads := 10
+	var wg sync.WaitGroup
+	wg.Add(threads * 2)
+	writer := NewMemCachedWriter(setup(t), nil)
+	writer.SetQueryBuilder(
+		func(params []any) (string, []any) {
+			pl := len(params)
+			qs := strings.Repeat(",(?)", pl)[1:]
+			as := make([]any, pl)
+			for i := 0; i < pl; i++ {
+				as[i] = "test value"
+			}
+			return fmt.Sprintf("insert into test values %s", qs), as
+		},
+	)
+	for i := 0; i < threads; i++ {
+		go func() {
+			writer.Push("http://localhost/up?a=1&b=2")
+			wg.Done()
+		}()
+		go func() {
+			writer.Write()
+			wg.Done()
+		}()
+	}
+	stopChan := make(chan struct{})
+	writer.Start(stopChan)
+	// timer := timeout(t, 5*time.Second)
+	time.Sleep(1100 * time.Microsecond)
+	wg.Wait()
+	// timer <- true
+	close(stopChan)
+	time.Sleep(100 * time.Microsecond)
+	require.Empty(t, writer.dataCache)
+	var count int
+	//goland:noinspection SqlNoDataSourceInspection,SqlResolve
+	require.Nil(t, writer.db.QueryRow("SELECT COUNT(*) FROM test").Scan(&count))
+	require.Equal(t, 10, count)
+}
+
 func bt(t *testing.T) SqlBuilderFunc {
+	t.Helper()
 	return func(params []any) (string, []any) {
 		require.Equal(t, []any{"http://localhost/up?a=1&b=2"}, params)
 		return "insert into test values(?)", []any{"test value"}
 	}
+}
+
+func timeout(t *testing.T, d time.Duration) chan bool {
+	t.Helper()
+	done := make(chan bool)
+	select {
+	case <-time.After(d):
+		require.Fail(t, "The test took too long.")
+	case <-done:
+	}
+	return done
 }

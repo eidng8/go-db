@@ -173,14 +173,15 @@ func (w *MemCachedWriter) Write() {
 		todo, cached = cached, nil
 		for data := range slices.Chunk(todo, 1000) {
 			query, args := w.builder(data)
-			ok, _ := Transaction(
+			_, err := Transaction(
 				conn,
 				func(tx *sql.Tx) (bool, error) {
 					_, err := tx.Exec(query, args...)
-					return nil == err, err
+					return true, err
 				},
 			)
-			if !ok {
+			if nil != err {
+				w.logger.Errorf("Error writing db: %v\n", err)
 				cached = append(cached, args...)
 			}
 		}
