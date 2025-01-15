@@ -192,7 +192,7 @@ func Test_Write_retries_and_log_io_error(t *testing.T) {
 	writer.logFailed([]any{"test", "val"})
 }
 
-func bt(t *testing.T) func(params []any) (string, []any) {
+func bt(t *testing.T) SqlBuilderFunc {
 	return func(params []any) (string, []any) {
 		require.Equal(t, []any{"http://localhost/up?a=1&b=2"}, params)
 		return "insert into test values(?)", []any{"test value"}
