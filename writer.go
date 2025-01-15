@@ -2,9 +2,9 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"io"
 	"slices"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -125,6 +125,7 @@ func (w *MemCachedWriter) SetInterval(duration time.Duration) {
 	w.interval = duration
 }
 
+// SetFailedLog sets the log to write records with db failure.
 func (w *MemCachedWriter) SetFailedLog(log io.Writer) {
 	w.failedLog = log
 }
@@ -183,7 +184,7 @@ func (w *MemCachedWriter) Write() {
 			)
 			if nil != err {
 				w.logger.Errorf("Error writing db: %v\n", err)
-				cached = append(cached, args...)
+				cached = append(cached, data...)
 			}
 		}
 		if len(cached) < 1 {
@@ -219,8 +220,7 @@ func (w *MemCachedWriter) logFailed(failed []any) {
 	if nil == w.failedLog || len(failed) < 1 {
 		return
 	}
-	data, _ := utils.SliceMapFunc[[]string](failed, utils.MapToType)
-	_, err := w.failedLog.Write([]byte(strings.Join(data, "\n")))
+	_, err := w.failedLog.Write([]byte(fmt.Sprintf("%#v\n", failed)))
 	if nil != err {
 		w.logger.Errorf("Error writing failed data log: %v\n", err)
 	}

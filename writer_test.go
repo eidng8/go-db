@@ -170,9 +170,9 @@ func Test_Write_retries_and_log_error(t *testing.T) {
 	times := 0
 	writer.SetQueryBuilder(
 		func(params []any) (string, []any) {
-			require.Equal(t, []any{fmt.Sprintf("val %d", times)}, params)
+			require.Equal(t, []any{"val 0"}, params)
 			times++
-			return "not a query", []any{fmt.Sprintf("val %d", times)}
+			return "not a query", []any{"val 0"}
 		},
 	)
 	writer.Write()
@@ -181,14 +181,15 @@ func Test_Write_retries_and_log_error(t *testing.T) {
 
 func Test_Write_retries_and_log_io_error(t *testing.T) {
 	err := assert.AnError
+	arr := []any{"test", "val"}
 	iow := NewMockWriter(t)
 	logger := NewMockTaggedLogger(t)
 	writer := NewMemCachedWriter(setup(t), nil, logger)
 	writer.SetRetries(1)
 	writer.SetFailedLog(iow)
-	iow.EXPECT().Write([]byte("test\nval")).Return(0, err).Once()
+	iow.EXPECT().Write([]byte(fmt.Sprintf("%#v\n", arr))).Return(0, err).Once()
 	logger.EXPECT().Errorf(mock.Anything, err).Once()
-	writer.logFailed([]any{"test", "val"})
+	writer.logFailed(arr)
 }
 
 func Test_Write_concurrency(t *testing.T) {
