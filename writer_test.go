@@ -75,7 +75,7 @@ func Test_Push(t *testing.T) {
 func Test_Write_on_timer(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
-	writer := NewMemCachedWriter(setup(t), nil)
+	writer := NewMemCachedWriter(setup(t), nil, nil)
 	writer.Push("http://localhost/up?a=1&b=2")
 	writer.SetQueryBuilder(
 		func(params []any) (string, []any) {
@@ -98,7 +98,7 @@ func Test_Write_on_timer(t *testing.T) {
 }
 
 func Test_Write_pops_cache(t *testing.T) {
-	writer := NewMemCachedWriter(setup(t), bt(t))
+	writer := NewMemCachedWriter(setup(t), bt(t), nil)
 	writer.Push("http://localhost/up?a=1&b=2")
 	writer.Write()
 	require.Empty(t, writer.dataCache)
@@ -111,7 +111,7 @@ func Test_Write_pops_cache(t *testing.T) {
 func Test_Write_before_shutdown(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
-	writer := NewMemCachedWriter(setup(t), nil)
+	writer := NewMemCachedWriter(setup(t), nil, nil)
 	writer.Push("http://localhost/up?a=1&b=2")
 	writer.SetQueryBuilder(
 		func(params []any) (string, []any) {
@@ -134,7 +134,7 @@ func Test_Write_before_shutdown(t *testing.T) {
 }
 
 func Test_Write_is_paused(t *testing.T) {
-	writer := NewMemCachedWriter(setup(t), bt(t))
+	writer := NewMemCachedWriter(setup(t), bt(t), nil)
 	writer.Push("http://localhost/up?a=1&b=2")
 	writer.Pause()
 	writer.Write()
@@ -152,7 +152,7 @@ func Test_Write_is_paused(t *testing.T) {
 }
 
 func Test_Write_does_nothing_if_cache_empty(t *testing.T) {
-	writer := NewMemCachedWriter(setup(t), nil)
+	writer := NewMemCachedWriter(setup(t), nil, nil)
 	writer.SetQueryBuilder(
 		func(params []any) (string, []any) {
 			require.FailNow(t, "should not be called")
@@ -163,9 +163,9 @@ func Test_Write_does_nothing_if_cache_empty(t *testing.T) {
 }
 
 func Test_Write_retries_and_log_error(t *testing.T) {
-	// logger := NewMockTaggedLogger(t)
-	writer := NewMemCachedWriter(setup(t), nil)
-	// writer.SetLogger(logger)
+	logger := NewMockTaggedLogger(t)
+	logger.EXPECT().Errorf(mock.Anything, mock.Anything).Times(3)
+	writer := NewMemCachedWriter(setup(t), nil, logger)
 	writer.Push("val 0")
 	times := 0
 	writer.SetQueryBuilder(
@@ -177,16 +177,14 @@ func Test_Write_retries_and_log_error(t *testing.T) {
 	)
 	writer.Write()
 	require.Equal(t, 3, times)
-	// logger.EXPECT().Errorf(mock.Anything, mock.Anything).Once()
 }
 
 func Test_Write_retries_and_log_io_error(t *testing.T) {
 	err := assert.AnError
 	iow := NewMockWriter(t)
 	logger := NewMockTaggedLogger(t)
-	writer := NewMemCachedWriter(setup(t), nil)
+	writer := NewMemCachedWriter(setup(t), nil, logger)
 	writer.SetRetries(1)
-	writer.SetLogger(logger)
 	writer.SetFailedLog(iow)
 	iow.EXPECT().Write([]byte("test\nval")).Return(0, err).Once()
 	logger.EXPECT().Errorf(mock.Anything, err).Once()
@@ -197,7 +195,7 @@ func Test_Write_concurrency(t *testing.T) {
 	threads := 10
 	var wg sync.WaitGroup
 	wg.Add(threads * 2)
-	writer := NewMemCachedWriter(setup(t), nil)
+	writer := NewMemCachedWriter(setup(t), nil, nil)
 	writer.SetQueryBuilder(
 		func(params []any) (string, []any) {
 			pl := len(params)

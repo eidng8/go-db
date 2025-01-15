@@ -69,12 +69,13 @@ type SplitLoggedWriter interface {
 // connection and query builder function. It sets the default values of
 // retries to 3, and interval to 1.
 func NewMemCachedWriter(
-	db *sql.DB, sqlBuilder SqlBuilderFunc,
+	db *sql.DB, sqlBuilder SqlBuilderFunc, logger utils.TaggedLogger,
 ) *MemCachedWriter {
 	return &MemCachedWriter{
 		db:         db,
 		maxRetries: 3,
 		interval:   1,
+		logger:     logger,
 		builder:    sqlBuilder,
 	}
 }
