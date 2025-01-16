@@ -6,7 +6,7 @@ require (
 	entgo.io/ent v0.14.1
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/docker/go-connections v0.5.0
-	github.com/eidng8/go-utils v0.1.1
+	github.com/eidng8/go-utils v0.1.3
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/stretchr/testify v1.10.0
