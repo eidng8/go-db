@@ -13,7 +13,7 @@ import (
 )
 
 // ConnectX to the database using predefined environment variables, panic if
-// failed.
+// failed. Returns the driver name and the database connection.
 func ConnectX() (string, *sql.DB) {
 	drv, db, err := Connect()
 	if err != nil {
@@ -22,7 +22,8 @@ func ConnectX() (string, *sql.DB) {
 	return drv, db
 }
 
-// Connect to the database using predefined environment variables.
+// Connect to the database using predefined environment variables. Returns the
+// driver name, the database connection, and an error if any.
 func Connect() (string, *sql.DB, error) {
 	drv := os.Getenv("DB_DRIVER")
 	if "" == drv {
